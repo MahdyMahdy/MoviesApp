@@ -1,0 +1,22 @@
+﻿@model IEnumerable<MoviesApp.Models.Movie>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                <img src="data:image/jpg;base64,@Convert.ToBase64String(TMDBHelper.GetImageFromPath(item.backdrop_path))" height="100" width="150" style="margin-top:15px;">
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
