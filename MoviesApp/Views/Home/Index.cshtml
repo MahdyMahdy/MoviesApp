@@ -1,22 +1,55 @@
-﻿@model IEnumerable<MoviesApp.Models.Movie>
+﻿@model MoviesApp.Models.Page
+<div class="row" >
+    <div class="row">
+        Page : @Model.page
+    </div>
+    <div style="margin-left:auto;" class="row">
+        <form action="~/Home/@(Model.page-1)" >
+            <input class="btn" type="submit" value="Previous Page" />
+        </form> 
+        <form action="~/Home/@(Model.page+1)">
+            <input class="btn" type="submit" value="Next Page" />
+        </form>
+    </div>
+</div>
+<hr />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                <img src="data:image/jpg;base64,@Convert.ToBase64String(TMDBHelper.GetImageFromPath(item.backdrop_path))" height="100" width="150" style="margin-top:15px;">
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@foreach(Result movie in Model.results)
+            {
+                <div class="row">
+                    <div class="col-3">
+                        <a href="~/MovieDetails/@movie.id">
+                            <img src="@TMDBHelper.GetImageFullPath(movie.poster_path)"
+                                 style="width:230px;height:270px;" />
+                        </a>
+                    </div>
+                    <div class="col-4">
+                        <div class="row" style="margin-right:20px;margin-bottom:50px;">
+                            <h3>@movie.title</h3>
+                        </div>
+                        <div class="row">
+                            <table>
+                                <tr>
+                                    <th>Release Date :</th>
+                                    <td>@movie.release_date</td>
+                                </tr>
+                                <tr>
+                                    <th>Language :</th>
+                                    <td>@movie.original_language</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="row">
+                            <h6>Overview : </h6>
+                        </div>
+                        <div class="row">
+                            <p>
+                                @movie.overview
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+            }

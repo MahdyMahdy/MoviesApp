@@ -1,0 +1,141 @@
+﻿@model Movie
+<link href="~/css/style.css" rel="stylesheet" />
+<div style="color: white;">
+    <div class="top">
+        <div class="columns">
+            <div class="column is-full featured_wrapper p-0">
+                     @if (ViewBag.inDB)
+                     {
+                         <img src="data:image/jpg;base64,@Convert.ToBase64String(Model.backdrop_bytes)" style="height:100%;">
+                     }
+                     else
+                     {
+                        <img src="@TMDBHelper.GetImageFullPath(Model.backdrop_path)" style="height:100%; ">
+                     }
+                <div class="title_wrapper">
+                    <h1 class="title is-1 has-text-white">@Model.title</h1>
+                    <div id="rating">
+                        @{int i; }
+                        @for (i = 1; i <= Model.vote_average / 2; i++)
+                        {
+                            <span>⭐</span>
+                        }
+                        @for (; i <= 5; i++)
+                        {
+                            <span>✩</span>
+                        }
+                        <span>@Model.vote_average / 10</span>
+                    </div>
+                    @{ 
+                        int min = @Model.runtime;
+                        int h = min / 60;
+                        min = min % 60;
+                    }
+                    <p>Runtime : @h:@min</p>
+                    <p>Language : @Model.original_language</p>
+                    <p>
+                        Spoken Language : @foreach (SpokenLanguage spokenLanguage in Model.spoken_languages)
+                        {
+                            <label>@spokenLanguage.english_name - </label>
+                        }
+                    </p>
+                    <p>Genre : @foreach (Genre genre in Model.genres)
+                    {
+                       <label>@genre.name - </label> 
+                    }
+                    </p>
+                    <h3>Overview</h3>
+                    <p>
+                        @Model.overview
+                    </p>
+                    @if (ViewBag.inDB == false)
+                    {
+                        <form action="~/MovieDetails/SaveMovie" method="post">
+                            <input type="hidden" name="id" value="@Model.id" />
+                            <input type="submit" style="color:white;" class="btn" value="Add to offline list">
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-auto">
+        <h4 style="color:white;">Informations : </h4>
+        <table style="color:white;">
+            <tr>
+                <th><label>Adult : </label></th>
+                <td>
+                    @{
+                        if (Model.adult)
+                        {
+                            <label>Yes</label>
+                        }
+                        else
+                        {
+                            <label>No</label>
+                        }
+                    }
+                </td>
+            </tr>
+            <tr>
+                <th><label>Budget : </label></th>
+                <td>
+                    @Model.budget
+                </td>
+            </tr>
+            <tr>
+                <th><label>Popularity : </label></th>
+                <td>
+                    @Model.popularity
+                </td>
+            </tr>
+            <tr>
+                <th><label>Revenue : </label></th>
+                <td>
+                    @Model.revenue
+                </td>
+            </tr>
+            <tr>
+                <th><label>Tagline : </label></th>
+                <td>
+                    @Model.tagline
+                </td>
+            </tr>
+            @if (@Model.belongs_to_collection != null)
+            {
+                <tr>
+                    <th><label>Collection : </label></th>
+                    <td>
+                        <a href="@TMDBHelper.GetImageFullPath(Model.belongs_to_collection.poster_path)">@Model.belongs_to_collection.name</a>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <th><a href="@Model.homepage">HomePage</a></th>
+            </tr>
+        </table>
+    </div>
+    <div class="col-auto" style="color:white;">
+        <h4>Production Companies:</h4>
+        <table>
+            @foreach (ProductionCompany productionCompany in Model.production_companies)
+            {
+                <tr>
+                    <th><a href="@TMDBHelper.GetImageFullPath(productionCompany.logo_path)">@productionCompany.name : </a></th>
+                    <td>@productionCompany.origin_country</td>
+                </tr>
+            }
+        </table>
+        <h4>Production Countries:</h4>
+        <table>
+            @foreach (ProductionCountry productionCountry in Model.production_countries)
+            {
+                <tr>
+                    <td>@productionCountry.name </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

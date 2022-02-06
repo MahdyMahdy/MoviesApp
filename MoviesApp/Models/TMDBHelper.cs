@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,38 +12,98 @@ namespace MoviesApp.Models
     public class TMDBHelper
     {
         private const string json_base_url = "https://api.themoviedb.org/3/movie/";
-        private const string api_key = "90f1a97417721d66d405f554e092a4ba";
+        private const string token = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5MGYxYTk3NDE3NzIxZDY2ZDQwNWY1NTRlMDkyYTRiYSIsInN1YiI6IjU0ZjQ5OGE2OTI1MTQxNzk5ZjAwMjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.AmH9ahcSsro2udQ5FbFbLBM6d62_nlZH8oyKlCJ8x8w";
         private const string image_base_url = "https://image.tmdb.org/t/p/original/";
-        public static Page GetPopularMoviesPage(int page)
+
+        public static Page GetPopularMoviesPage(int page,IMemoryCache memoryCache)
         {
-            using (WebClient wc = new WebClient())
+            string url = json_base_url + "popular?page=" + page;
+            if (!memoryCache.TryGetValue(url,out Page res))
             {
-                string request = json_base_url + "popular?api_key=" + api_key+ "&page="+page;
-                var json = wc.DownloadString(request);
-                Page res = JsonConvert.DeserializeObject<Page>(json);
-                return res;
+                using (WebClient wc = new WebClient())
+                {
+                    RestClient restClient = new RestClient(url);
+
+                    RestRequest request = new RestRequest();
+
+                    request.Method = Method.Get;
+
+                    request.AddHeader("Authorization", "Bearer " + token);
+
+                    var response = restClient.ExecuteGetAsync(request);
+                    res = JsonConvert.DeserializeObject<Page>(response.Result.Content);
+                    var cacheExpOptions = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromSeconds(20)
+                    };
+                    memoryCache.Set(url, res, cacheExpOptions);
+                }
             }
+            return res;
         }
 
-        public static Images GetMovieImages(int id)
+        public static Movie GetMovie(int id, IMemoryCache memoryCache)
         {
-            using (WebClient wc = new WebClient())
+            string url = json_base_url + id ;
+            if (!memoryCache.TryGetValue(url, out Movie res))
             {
-                string request = json_base_url + id+"/images?api_key=" + api_key ;
-                var json = wc.DownloadString(request);
-                Images res = JsonConvert.DeserializeObject<Images>(json);
-                return res;
+                using (WebClient wc = new WebClient())
+                {
+                    RestClient restClient = new RestClient(url);
+
+                    RestRequest request = new RestRequest();
+
+                    request.Method = Method.Get;
+
+                    request.AddHeader("Authorization", "Bearer " + token);
+
+                    var response = restClient.ExecuteGetAsync(request);
+                    res = JsonConvert.DeserializeObject<Movie>(response.Result.Content);
+                    var cacheExpOptions = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromSeconds(20)
+                    };
+                    memoryCache.Set(request, res, cacheExpOptions);
+                }
             }
+            return res;
         }
 
-        public static byte[] GetImageFromPath(string path)
+        public static byte[] GetImageBytes(string path, IMemoryCache memoryCache)
         {
-            using (WebClient wc = new WebClient())
+            string request = image_base_url + path;
+            if (!memoryCache.TryGetValue(request, out byte[] res))
             {
-                string request = image_base_url + path;
-                byte[] image_bytes = wc.DownloadData(request);
-                return image_bytes;
+                using (WebClient wc = new WebClient())
+                {
+                    try
+                    {
+                        res = wc.DownloadData(request);
+                    }
+                    catch (Exception)
+                    {
+                        res = new byte[0];
+                    }
+                    var cacheExpOptions = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromSeconds(20)
+                    };
+                    memoryCache.Set(request, res, cacheExpOptions);
+                }
             }
+            return res;
+        }
+
+        public static string GetImageFullPath(string path)
+        {
+            string request = image_base_url + path;
+            return request;
         }
     }
 }

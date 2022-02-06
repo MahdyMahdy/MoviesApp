@@ -1,0 +1,55 @@
+﻿@model List<Movie>
+<div class="row">
+    <div class="row">
+        Page : @ViewBag.page
+    </div>
+    <div style="margin-left:auto;" class="row">
+        <form action="~/Offline/@(ViewBag.page-1)">
+            <input class="btn" type="submit" value="Previous Page" />
+        </form>
+        <form action="~/Offline/@(@ViewBag.page+1)">
+            <input class="btn" type="submit" value="Next Page" />
+        </form>
+    </div>
+</div>
+<hr />
+
+@foreach (Movie movie in Model)
+{
+    <div class="row">
+        <div class="col-3">
+            <a href="~/MovieDetails/@movie.id">
+                <img src="data:image/jpg;base64,@Convert.ToBase64String(movie.poster_bytes)"
+                     style="width:230px;height:270px;" />
+            </a>
+        </div>
+        <div class="col-4">
+            <div class="row" style="margin-right:20px;margin-bottom:50px;">
+                <h3>@movie.title</h3>
+            </div>
+            <div class="row">
+                <table>
+                    <tr>
+                        <th>Release Date :</th>
+                        <td>@movie.release_date</td>
+                    </tr>
+                    <tr>
+                        <th>Language :</th>
+                        <td>@movie.original_language</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="row">
+                <h6>Overview : </h6>
+            </div>
+            <div class="row">
+                <p>
+                    @movie.overview
+                </p>
+            </div>
+        </div>
+    </div>
+    <hr />
+}
