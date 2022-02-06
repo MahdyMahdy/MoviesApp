@@ -1,55 +1,65 @@
 ﻿@model MoviesApp.Models.Page
-<div class="row" >
-    <div class="row">
-        Page : @Model.page
-    </div>
+<link rel="stylesheet" href="~/css/home.css" />
+<div>
+    <header id="backdrop" class="banner" style="background-image:url(@TMDBHelper.GetImageFullPath(Model.results.ElementAt(0).backdrop_path))">
+        <div class="banner__contents">
+            <h1 id="title" class="banner__title">@Model.results.ElementAt(0).title</h1>
+            <label id="date">@Model.results.ElementAt(0).release_date</label>
+            <div class="banner__buttons">
+                <form id="DetailsForm" action="~/MovieDetails/@Model.results.ElementAt(0).id">
+                    <button class="banner__button" type="submit">View</button>
+                </form>
+            </div>
+            <h1 id="overview" class="banner__description">
+                @Model.results.ElementAt(0).overview
+            </h1>
+        </div>
+        <div class="banner--fadeBottom"></div>
+    </header>
     <div style="margin-left:auto;" class="row">
-        <form action="~/Home/@(Model.page-1)" >
-            <input class="btn" type="submit" value="Previous Page" />
-        </form> 
+        <form action="~/Home/@(Model.page-1)">
+            <button class="banner__button" type="submit">Previous Page</button>
+        </form>
         <form action="~/Home/@(Model.page+1)">
-            <input class="btn" type="submit" value="Next Page" />
+            <button class="banner__button" type="submit">Next Page</button>
         </form>
     </div>
-</div>
-<hr />
-
-@foreach(Result movie in Model.results)
+    @{ int postersCount = 5;}
+    @for (int i = 0; i < (double)Model.results.Count() / postersCount; i++)
+    {
+        <div class="row__posters">
+            @for (int j = i * postersCount; j < (i + 1) * postersCount; j++)
             {
-                <div class="row">
-                    <div class="col-3">
-                        <a href="~/MovieDetails/@movie.id">
-                            <img src="@TMDBHelper.GetImageFullPath(movie.poster_path)"
-                                 style="width:230px;height:270px;" />
-                        </a>
-                    </div>
-                    <div class="col-4">
-                        <div class="row" style="margin-right:20px;margin-bottom:50px;">
-                            <h3>@movie.title</h3>
-                        </div>
-                        <div class="row">
-                            <table>
-                                <tr>
-                                    <th>Release Date :</th>
-                                    <td>@movie.release_date</td>
-                                </tr>
-                                <tr>
-                                    <th>Language :</th>
-                                    <td>@movie.original_language</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-5">
-                        <div class="row">
-                            <h6>Overview : </h6>
-                        </div>
-                        <div class="row">
-                            <p>
-                                @movie.overview
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <hr />
+                if (j == Model.results.Count())
+                {
+                    break;
+                }
+                <img id="@(i*postersCount+j)" class="row__poster row__posterLarge" src="@TMDBHelper.GetImageFullPath(Model.results.ElementAt(j).poster_path)" onclick="fn(this)" />
+                <input type="hidden" id="backdrop@(i*postersCount+j)" value="@TMDBHelper.GetImageFullPath(Model.results.ElementAt(j).backdrop_path)" />
+                <input type="hidden" id="title@(i*postersCount+j)" value="@Model.results.ElementAt(j).title" />
+                <input type="hidden" id="overview@(i*postersCount+j)" value="@Model.results.ElementAt(j).overview" />
+                <input type="hidden" id="id@(i*postersCount+j)" value="@Model.results.ElementAt(j).id" />
+                <input type="hidden" id="date@(i*postersCount+j)" value="@Model.results.ElementAt(j).release_date" />
             }
+        </div>
+    }
+    <script>
+        function fn(element) {
+            var id = element.id;
+            var backdropHidden = document.getElementById("backdrop" + id);
+            document.getElementById("backdrop").style.backgroundImage = "url(" + backdropHidden.value + ")";
+            var overview = document.getElementById("overview" + id).value;
+            document.getElementById("overview").innerHTML = overview;
+            var title = document.getElementById("title" + id).value;
+            document.getElementById("title").innerHTML = title;
+            var Movieid = document.getElementById("id" + id).value;
+            var oldAction = document.getElementById("DetailsForm").action;
+            var arr = oldAction.split("/");
+            var newAction = arr[0] + "/" + "/" + arr[2] + "/" + "MovieDetails/" + Movieid;
+            document.getElementById("DetailsForm").action = newAction;
+            var date = document.getElementById("date" + id).value;
+            document.getElementById("date").innerHTML = date;
+            window.scrollTo(0,0);
+        }
+    </script>
+</div>

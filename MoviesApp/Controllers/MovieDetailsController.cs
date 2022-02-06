@@ -29,7 +29,14 @@ namespace MoviesApp.Controllers
                 movie.spoken_languages = (from SpokenLanguage sl in db.spokenLanguages where sl.Movieid == id select sl).ToList();
                 movie.production_companies = (from ProductionCompany pc in db.productionCompanies where pc.Movieid == id select pc).ToList();
                 movie.production_countries = (from ProductionCountry pc in db.productionCountries where pc.Movieid == id select pc).ToList();
-                movie.belongs_to_collection = (BelongsToCollection)(from BelongsToCollection bc in db.belongsToCollections where bc.Movieid == id select bc).First();
+                try
+                {
+                    movie.belongs_to_collection = (from BelongsToCollection bc in db.belongsToCollections where bc.Movieid == id select bc).First();
+                }
+                catch
+                {
+
+                }
                 inDB = true;
                 return movie;
             }
