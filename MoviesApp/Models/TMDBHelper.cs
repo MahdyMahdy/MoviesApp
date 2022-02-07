@@ -44,6 +44,64 @@ namespace MoviesApp.Models
             return res;
         }
 
+        public static Credits GetMovieCredits(int id, IMemoryCache memoryCache)
+        {
+            string url = json_base_url + id + "/credits";
+            if (!memoryCache.TryGetValue(url, out Credits res))
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    RestClient restClient = new RestClient(url);
+
+                    RestRequest request = new RestRequest();
+
+                    request.Method = Method.Get;
+
+                    request.AddHeader("Authorization", "Bearer " + token);
+
+                    var response = restClient.ExecuteGetAsync(request);
+                    res = JsonConvert.DeserializeObject<Credits>(response.Result.Content);
+                    var cacheExpOptions = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromSeconds(20)
+                    };
+                    memoryCache.Set(request, res, cacheExpOptions);
+                }
+            }
+            return res;
+        }
+
+        public static Images GetMovieImages(int id, IMemoryCache memoryCache)
+        {
+            string url = json_base_url + id+"/images";
+            if (!memoryCache.TryGetValue(url, out Images res))
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    RestClient restClient = new RestClient(url);
+
+                    RestRequest request = new RestRequest();
+
+                    request.Method = Method.Get;
+
+                    request.AddHeader("Authorization", "Bearer " + token);
+
+                    var response = restClient.ExecuteGetAsync(request);
+                    res = JsonConvert.DeserializeObject<Images>(response.Result.Content);
+                    var cacheExpOptions = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromSeconds(20)
+                    };
+                    memoryCache.Set(request, res, cacheExpOptions);
+                }
+            }
+            return res;
+        }
+
         public static Movie GetMovie(int id, IMemoryCache memoryCache)
         {
             string url = json_base_url + id ;

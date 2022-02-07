@@ -20,6 +20,59 @@ namespace MoviesApp.Controllers
             _memoryCache = memoryCache;
         }
 
+        [Route("MovieDetails/{id}")]
+        public ActionResult Index(int id)
+        {
+            Movie movie = GetMovie(id);
+            Images images = GetMovieImages(id);
+            Credits credits = GetMovieCredits(id);
+            MovieDetails movieDetails = new MovieDetails(movie, images,credits);
+            ViewBag.inDB = inDB;
+            return View(movieDetails);
+        }
+
+        [Route("MovieDetails/SaveMovie")]
+        [HttpPost]
+        public ActionResult SaveMovie(int id)
+        {
+            Movie movie = TMDBHelper.GetMovie(id, _memoryCache);
+            Images images = TMDBHelper.GetMovieImages(id, _memoryCache);
+            Credits credits = TMDBHelper.GetMovieCredits(id, _memoryCache);
+            movie.backdrop_bytes = TMDBHelper.GetImageBytes(TMDBHelper.GetImageFullPath(movie.backdrop_path), _memoryCache);
+            movie.poster_bytes = TMDBHelper.GetImageBytes(TMDBHelper.GetImageFullPath(movie.poster_path), _memoryCache);
+            db.movies.Add(movie);
+            db.images.Add(images);
+            db.credits.Add(credits);
+            db.SaveChanges();
+            return Redirect("~/MovieDetails/" + id);
+        }
+
+        public Credits GetMovieCredits(int id)
+        {
+            Credits credits = db.credits.Find(id);
+            if (credits != null)
+            {
+                credits.cast = (from Cast cast in db.casts where cast.Creditsid == id select cast).OrderBy(cast => cast.cast_id).ToList();
+                inDB = true;
+                return credits;
+            }
+            credits = TMDBHelper.GetMovieCredits(id, _memoryCache);
+            return credits;
+        }
+
+        public Images GetMovieImages(int id)
+        {
+            Images images = db.images.Find(id);
+            if (images != null)
+            {
+                images.posters = (from Poster poster in db.posters where poster.Imagesid == id select poster).ToList();
+                inDB = true;
+                return images;
+            }
+            images = TMDBHelper.GetMovieImages(id, _memoryCache);
+            return images;
+        }
+
         public Movie GetMovie(int id)
         {
             Movie movie = db.movies.Find(id);
@@ -42,26 +95,6 @@ namespace MoviesApp.Controllers
             }
             movie = TMDBHelper.GetMovie(id,_memoryCache);
             return movie;
-        }
-
-        [Route("MovieDetails/{id}")]
-        public ActionResult Index(int id)
-        {
-            Movie movie = GetMovie(id);
-            ViewBag.inDB = inDB;
-            return View(movie);
-        }
-
-        [Route("MovieDetails/SaveMovie")]
-        [HttpPost]
-        public ActionResult SaveMovie(int id)
-        {
-            Movie movie = TMDBHelper.GetMovie(id, _memoryCache);
-            movie.backdrop_bytes = TMDBHelper.GetImageBytes(TMDBHelper.GetImageFullPath(movie.backdrop_path), _memoryCache);
-            movie.poster_bytes = TMDBHelper.GetImageBytes(TMDBHelper.GetImageFullPath(movie.poster_path), _memoryCache);
-            db.movies.Add(movie);
-            db.SaveChanges();
-            return Redirect("~/MovieDetails/" + id);
         }
     }
 }

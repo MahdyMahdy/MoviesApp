@@ -56,6 +56,7 @@ namespace MoviesApp.Models
     {
         public List<Backdrop> backdrops { get; set; }
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int id { get; set; }
         public List<Logo> logos { get; set; }
         public List<Poster> posters { get; set; }
